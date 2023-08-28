@@ -1,6 +1,6 @@
 <?php
 
-namespace PreventPastOrFutureDates\ExternalModule;
+namespace PreventDaysOfWeek\ExternalModule;
 
 use ExternalModules\AbstractExternalModule;
 
@@ -60,6 +60,8 @@ class ExternalModule extends AbstractExternalModule
 {
     public $futureDateTag = "@PREVENT-FUTUREDATE";
     public $pastDateTag = "@PREVENT-PASTDATE";
+    public $saturdayTag = "@PREVENT-SATURDAY";
+    public $sundayTag = "@PREVENT-SUNDAY";
 
     function containsFutureDateTag(?string $tags): bool
     {
@@ -69,6 +71,18 @@ class ExternalModule extends AbstractExternalModule
     function containsPastDateTag(?string $tags): bool
     {
         return (isset($tags)) ? in_array($this->pastDateTag, explode(' ', $tags)) : false;
+    }
+
+    function containsSaturdayTag(?string $tags): bool
+    {
+        //echo "saturday tag is: " . $this->saturdayTag;
+        //echo "<br>";
+        return (isset($tags)) ? in_array($this->saturdayTag, explode(' ', $tags)) : false;
+    }
+
+    function containsSundayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->sundayTag, explode(' ', $tags)) : false;
     }
 
     // Given $Proj->metadata[$field_name] return whether the field 
@@ -104,16 +118,24 @@ class ExternalModule extends AbstractExternalModule
     **/
     function redcap_every_page_top($project_id)
     {
+
+
         if (Validate::pageIs(Page::ONLINE_DESIGNER) && $project_id) {
             $this->initializeJavascriptModuleObject();
             $this->tt_addToJavascriptModuleObject('futureDateTag', $this->futureDateTag);
             $this->tt_addToJavascriptModuleObject('pastDateTag', $this->pastDateTag);
+            $this->tt_addToJavascriptModuleObject('saturdayTag', $this->saturdayTag);
+            $this->tt_addToJavascriptModuleObject('sundayTag', $this->sundayTag);
             $this->includeSource(ResourceType::JS, 'js/addActionTags.js');
         } else if (Validate::pageIsIn(array(Page::DATA_ENTRY, Page::SURVEY, Page::SURVEY_THEME)) && isset($_GET['id'])) {
             global $Proj;
             $instrument = $_GET['page'];
             $preventFutureDateFields = [];
             $preventPastDateFields = [];
+            $preventSaturdayFields = [];
+            $preventSundayFields = [];
+
+            //echo "Hello world, scheduler!";
 
             // Iterate through all fields and search for date fields with @PREVENT-FUTUREDATE or @PREVENT-PASTDATE
             // and add them to an array to pass to JS to apply date restrictions. If both tags are added then no
@@ -130,13 +152,34 @@ class ExternalModule extends AbstractExternalModule
                     if ($this->containsPastDateTag($action_tags) && !$this->containsFutureDateTag($action_tags)) {
                         array_push($preventPastDateFields, $field_name);
                     }
+
+                    if ($this->containsSaturdayTag($action_tags)) {
+                        array_push($preventSaturdayFields, $field_name);
+                    }
+
+                    if ($this->containsSundayTag($action_tags)) {
+                        array_push($preventSundayFields, $field_name);
+                    }                    
                 }
             }
 
+
+/*
+            echo "<pre>";
+            print_r($preventSaturdayFields);
+            echo "</pre>";
+
+            echo "<pre>";
+            print_r($preventPastDateFields);
+            echo "</pre>";
+*/
             $this->initializeJavascriptModuleObject();
             $this->tt_addToJavascriptModuleObject('preventFutureDateFields', json_encode($preventFutureDateFields));
             $this->tt_addToJavascriptModuleObject('preventPastDateFields', json_encode($preventPastDateFields));
-            $this->includeSource(ResourceType::JS, 'js/preventPastOrFutureDates.js');
+            $this->tt_addToJavascriptModuleObject('preventSaturdayFields', json_encode($preventSaturdayFields));
+            $this->tt_addToJavascriptModuleObject('preventSundayFields', json_encode($preventSundayFields));
+            //$this->includeSource(ResourceType::JS, 'js/preventPastOrFutureDates.js');
+            $this->includeSource(ResourceType::JS, 'js/preventDaysOfWeek.js');
         }
     }
 }

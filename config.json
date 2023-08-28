@@ -1,6 +1,6 @@
 {
-    "name": "Prevent Past or Future Dates",
-    "namespace": "PreventPastOrFutureDates\\ExternalModule",
+    "name": "Prevent Days of Week",
+    "namespace": "PreventDaysOfWeek\\ExternalModule",
     "description": "This module adds action tags to prevent entering past dates or future dates for date and datetime fields.",
     "permissions": [
         "redcap_every_page_top"

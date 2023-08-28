@@ -50,6 +50,8 @@ $(document).ready(function () {
 	let preventSundayFields = JSON.parse(module.tt('preventSundayFields'));
 	let attachedListeners = false;
 
+	console.log(preventSaturdayFields);
+
 	// REDCap calls $.datepicker.setDefaults() after External Module javascript is executed.
 	// Because of this the restrictions on the jQuery UI datepicker need to be applied after
 	// all scripts have been loaded.
@@ -73,23 +75,8 @@ function applyDateRestrictions(dateFields, fn) {
 	}
 }
 
-function preventSaturdays(field){
-	let $input = $(`#${field}-tr input`);
-	let inputAttrVal = $input.attr("value");
 
-	// Prevent validation for vields that were set correctly before
-	if (inputAttrVal) return;
 
-	let onBlur = $input.attr("onblur");
-	let dateFormat = $input.attr('fv');
-
-	
-	console.log(inputAttrVal);
-}
-
-function preventSundays(field){
-
-}
 
 // Sets the maxDate option on the jQuery UI datepicker
 function preventFutureDate(field) {
@@ -128,6 +115,54 @@ function preventFutureDate(field) {
 	$input.attr("onblur", "validate(this, '" + minDate + "','" + getBoundary(dateFormat, false) + "','soft-typed','" + dateFormat + "',1)");
 }
 
+function preventSundays(field){
+	preventDayOfWeek(field, 0);
+}
+
+function preventSaturdays(field){
+	preventDayOfWeek(field, 6);
+}
+
+function preventDayOfWeek(field, index){
+		//console.log("Hello world!");
+	let $input = $(`#${field}-tr input`);
+	let inputAttrVal = $input.attr("value");
+
+	// Prevent validation for vields that were set correctly before
+	if (inputAttrVal) return;
+
+	let onBlur = $input.attr("onblur");
+	let dateFormat = $input.attr('fv');
+
+	//console.log(dateFormat);
+
+	
+	//console.log(inputAttrVal);
+
+	/*
+	//$input.datepicker("option", "maxDate", "+0d");
+	$input.datepicker("option", "constrainInput", true);
+		// REDCap initalizes datepickers with onSelect, however doing so prevents the input field from maintaining focus and being valided if the datepicker is selected more than once 
+		// By using onClose instead (as REDCAP initializes datetimepicker) the input will not lose focus and thereby prevent circumventing validation
+	$input.datepicker("option", "onSelect", null);
+
+	*/
+	$input.datepicker("option", "beforeShowDay", function(date){ 
+		//console.log(date);
+		//console.log("before show day");
+		var day = date.getDay();
+
+		if(day == index){
+			return [false];
+		}
+
+		return [true];
+	});
+
+
+	$input.datepicker("option", "onClose", function(){ $(this).focus(); dataEntryFormValuesChanged=true; try{ calculate($(this).attr('name'));doBranching($(this).attr('name')); }catch(e){ } });
+}
+
 // Sets the minDate option on the jQuery UI datepicker
 function preventPastDate(field) {
 	let $input = $(`#${field}-tr input`);
@@ -163,7 +198,7 @@ function preventPastDate(field) {
 	}
 
 	// Override onblur callback function 
-	$input.attr("onblur", "validate(this, '" + getBoundary(dateFormat, true) + "','" + maxDate + "','soft-typed','" + dateFormat + "',1)");
+	//$input.attr("onblur", "validate(this, '" + getBoundary(dateFormat, true) + "','" + maxDate + "','soft-typed','" + dateFormat + "',1)");
 }
 
 function isDateTime(format) {
