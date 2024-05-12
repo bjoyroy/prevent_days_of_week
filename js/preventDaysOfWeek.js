@@ -48,9 +48,24 @@ $(document).ready(function () {
 
 	let preventSaturdayFields = JSON.parse(module.tt('preventSaturdayFields'));
 	let preventSundayFields = JSON.parse(module.tt('preventSundayFields'));
+	let preventMondayFields = JSON.parse(module.tt('preventMondayFields'));
+	let preventTuesdayFields = JSON.parse(module.tt('preventTuesdayFields'));
+	let preventWednesdayFields = JSON.parse(module.tt('preventWednesdayFields'));
+	let preventThursdayFields = JSON.parse(module.tt('preventThursdayFields'));
+	let preventFridayFields = JSON.parse(module.tt('preventFridayFields'));
+
+	let preventDaysFieldsDays = JSON.parse(module.tt('preventDaysFieldsDays'));
+
+	//console.log(preventDaysFieldsDays);
+
+	//let preventDateOfWeekFields = [...preventSaturdayFields, ...preventSundayFields, ...preventMondayFields
+	//	,...preventTuesdayFields, ...preventWednesdayFields, ...preventThursdayFields, ...preventFridayFields];
+
+	//console.log(preventDateOfWeekFields);
+
 	let attachedListeners = false;
 
-	console.log(preventSaturdayFields);
+	//console.log(preventSaturdayFields);
 
 	// REDCap calls $.datepicker.setDefaults() after External Module javascript is executed.
 	// Because of this the restrictions on the jQuery UI datepicker need to be applied after
@@ -61,8 +76,10 @@ $(document).ready(function () {
 			applyDateRestrictions(preventFutureDateFields, preventFutureDate);
 			applyDateRestrictions(preventPastDateFields, preventPastDate);
 
-			applyDateRestrictions(preventSaturdayFields, preventSaturdays);
-			applyDateRestrictions(preventSundayFields, preventSundays);
+			applyDayRestrictions(preventDaysFieldsDays, preventDays);
+
+			//applyDateRestrictions(preventSaturdayFields, preventSaturdays);
+			//applyDateRestrictions(preventSundayFields, preventSundays);
 		}
 	});
 
@@ -73,6 +90,63 @@ function applyDateRestrictions(dateFields, fn) {
 	for (const field of dateFields) {
 		fn(field);
 	}
+}
+
+function applyDayRestrictions(field_options_arr, fn) {
+	// body...
+	for (var i = 0; i < field_options_arr.length; i+= 2){
+		fn(field_options_arr[i], field_options_arr[i+1]);
+	}
+}
+
+function preventDays(field, day_options) {
+	// body...
+	console.log(field);
+	console.log(day_options);
+
+	var block_days = day_options.split('').map(Number);
+	console.log(block_days);
+
+	let $input = $(`#${field}-tr input`);
+	let inputAttrVal = $input.attr("value");
+
+	// Prevent validation for vields that were set correctly before
+	if (inputAttrVal) return;
+
+	let onBlur = $input.attr("onblur");
+	let dateFormat = $input.attr('fv');
+
+	//console.log(dateFormat);
+
+	
+	//console.log(inputAttrVal);
+
+	
+	//$input.datepicker("option", "maxDate", "+0d");
+	$input.datepicker("option", "constrainInput", true);
+		// REDCap initalizes datepickers with onSelect, however doing so prevents the input field from maintaining focus and being valided if the datepicker is selected more than once 
+		// By using onClose instead (as REDCAP initializes datetimepicker) the input will not lose focus and thereby prevent circumventing validation
+	$input.datepicker("option", "onSelect", null);
+
+	
+	
+	$input.datepicker("option", "beforeShowDay", function(date){ 
+		//console.log(date);
+		//console.log("before show day");
+		var day = date.getDay();
+
+		if(block_days.indexOf(day) != -1){
+			return [false];
+		}
+
+
+		return [true];
+	});
+	
+
+
+	$input.datepicker("option", "onClose", function(){ $(this).focus(); dataEntryFormValuesChanged=true; try{ calculate($(this).attr('name'));doBranching($(this).attr('name')); }catch(e){ } });
+
 }
 
 
@@ -139,14 +213,14 @@ function preventDayOfWeek(field, index){
 	
 	//console.log(inputAttrVal);
 
-	/*
+	
 	//$input.datepicker("option", "maxDate", "+0d");
 	$input.datepicker("option", "constrainInput", true);
 		// REDCap initalizes datepickers with onSelect, however doing so prevents the input field from maintaining focus and being valided if the datepicker is selected more than once 
 		// By using onClose instead (as REDCAP initializes datetimepicker) the input will not lose focus and thereby prevent circumventing validation
 	$input.datepicker("option", "onSelect", null);
 
-	*/
+	
 	$input.datepicker("option", "beforeShowDay", function(date){ 
 		//console.log(date);
 		//console.log("before show day");

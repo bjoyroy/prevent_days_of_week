@@ -9,8 +9,17 @@ $(document).ready(function () {
         let module = ExternalModules['PreventDaysOfWeek'].ExternalModule;
         let futureDateTag = module.tt('futureDateTag');
         let pastDateTag = module.tt('pastDateTag');
+        
         let saturdayTag = module.tt('saturdayTag');
         let sundayTag = module.tt('sundayTag');
+
+        let mondayTag = module.tt('mondayTag');
+        let tuesdayTag = module.tt('tuesdayTag');
+
+        let wednesdayTag = module.tt('wednesdayTag');
+        let thursdayTag = module.tt('thursdayTag');
+
+        let fridayTag = module.tt('fridayTag');
 
         var result = $popup.find('tr td.nowrap:nth-child(2)').filter(function(index, element) { 
             var result = $(element).text() > futureDateTag;
@@ -32,6 +41,21 @@ $(document).ready(function () {
 
         prependActionTag($popup, markerElement, sundayTag, 
             'Prevents Sundays from being entered into date field.');
+
+        prependActionTag($popup, markerElement, mondayTag, 
+            'Prevents Mondays from being entered into date field.');
+
+        prependActionTag($popup, markerElement, tuesdayTag, 
+            'Prevents Tuesdays from being entered into date field.');
+
+        prependActionTag($popup, markerElement, wednesdayTag, 
+            'Prevents Wednesdays from being entered into date field.');
+
+        prependActionTag($popup, markerElement, thursdayTag, 
+            'Prevents Thursdays from being entered into date field.');
+
+        prependActionTag($popup, markerElement, fridayTag, 
+            'Prevents Fridays from being entered into date field.');
     });
 
     var prependActionTag = function (container, markerElement, tagName, tagDescription) {

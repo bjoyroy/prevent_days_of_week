@@ -60,8 +60,14 @@ class ExternalModule extends AbstractExternalModule
 {
     public $futureDateTag = "@PREVENT-FUTUREDATE";
     public $pastDateTag = "@PREVENT-PASTDATE";
+
     public $saturdayTag = "@PREVENT-SATURDAY";
     public $sundayTag = "@PREVENT-SUNDAY";
+    public $mondayTag = "@PREVENT-MONDAY";
+    public $tuesdayTag = "@PREVENT-TUESDAY";
+    public $wednesdayTag = "@PREVENT-WEDNESDAY";
+    public $thursdayTag = "@PREVENT-THURSDAY";
+    public $fridayTag = "@PREVENT-FRIDAY";
 
     function containsFutureDateTag(?string $tags): bool
     {
@@ -83,6 +89,31 @@ class ExternalModule extends AbstractExternalModule
     function containsSundayTag(?string $tags): bool
     {
         return (isset($tags)) ? in_array($this->sundayTag, explode(' ', $tags)) : false;
+    }
+
+    function containsMondayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->mondayTag, explode(' ', $tags)) : false;
+    }
+
+    function containsTuesdayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->tuesdayTag, explode(' ', $tags)) : false;
+    }
+
+        function containsWednesdayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->wednesdayTag, explode(' ', $tags)) : false;
+    }
+
+        function containsThursdayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->thursdayTag, explode(' ', $tags)) : false;
+    }
+
+        function containsFridayTag(?string $tags): bool
+    {
+        return (isset($tags)) ? in_array($this->fridayTag, explode(' ', $tags)) : false;
     }
 
     // Given $Proj->metadata[$field_name] return whether the field 
@@ -124,8 +155,17 @@ class ExternalModule extends AbstractExternalModule
             $this->initializeJavascriptModuleObject();
             $this->tt_addToJavascriptModuleObject('futureDateTag', $this->futureDateTag);
             $this->tt_addToJavascriptModuleObject('pastDateTag', $this->pastDateTag);
+
             $this->tt_addToJavascriptModuleObject('saturdayTag', $this->saturdayTag);
             $this->tt_addToJavascriptModuleObject('sundayTag', $this->sundayTag);
+            $this->tt_addToJavascriptModuleObject('mondayTag', $this->mondayTag);
+            $this->tt_addToJavascriptModuleObject('tuesdayTag', $this->tuesdayTag);
+            $this->tt_addToJavascriptModuleObject('wednesdayTag', $this->wednesdayTag);
+            $this->tt_addToJavascriptModuleObject('thursdayTag', $this->thursdayTag);
+            $this->tt_addToJavascriptModuleObject('fridayTag', $this->fridayTag);
+
+
+
             $this->includeSource(ResourceType::JS, 'js/addActionTags.js');
         } else if (Validate::pageIsIn(array(Page::DATA_ENTRY, Page::SURVEY, Page::SURVEY_THEME)) && isset($_GET['id'])) {
             global $Proj;
@@ -134,6 +174,15 @@ class ExternalModule extends AbstractExternalModule
             $preventPastDateFields = [];
             $preventSaturdayFields = [];
             $preventSundayFields = [];
+            $preventMondayFields = [];
+            $preventTuesdayFields = [];
+            $preventWednesdayFields = [];
+            $preventThursdayFields = [];
+            $preventFridayFields = [];
+
+            $preventDaysFields = [];
+
+            $preventDaysFieldsDays = [];
 
             //echo "Hello world, scheduler!";
 
@@ -145,6 +194,9 @@ class ExternalModule extends AbstractExternalModule
                 if ($this->isDateTypeField($field)) {
                     $action_tags = $field['misc'];
 
+                    $daysActionTagFlag = false;
+                    $daysActionTag = "";
+
                     if ($this->containsFutureDateTag($action_tags) && !$this->containsPastDateTag($action_tags)) {
                         array_push($preventFutureDateFields, $field_name);
                     }
@@ -153,13 +205,52 @@ class ExternalModule extends AbstractExternalModule
                         array_push($preventPastDateFields, $field_name);
                     }
 
-                    if ($this->containsSaturdayTag($action_tags)) {
-                        array_push($preventSaturdayFields, $field_name);
-                    }
-
                     if ($this->containsSundayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "0";
                         array_push($preventSundayFields, $field_name);
-                    }                    
+                    } 
+
+                    if ($this->containsMondayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "1";
+                        array_push($preventMondayFields, $field_name);
+                    }   
+
+                    if ($this->containsTuesdayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "2";
+                        array_push($preventTuesdayFields, $field_name);
+                    }  
+
+                    if ($this->containsWednesdayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "3";
+                        array_push($preventWednesdayFields, $field_name);
+                    }     
+
+                    if ($this->containsThursdayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "4";
+                        array_push($preventThursdayFields, $field_name);
+                    }      
+
+                    if ($this->containsFridayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "5";
+                        array_push($preventFridayFields, $field_name);
+                    }   
+
+                    if ($this->containsSaturdayTag($action_tags)) {
+                        $daysActionTagFlag = true;
+                        $daysActionTag = $daysActionTag . "6";
+                        array_push($preventSaturdayFields, $field_name);
+                    }   
+
+                    if($daysActionTagFlag === true){
+                        $preventDaysFieldsDays[] = $$field_name;
+                        $preventDaysFieldsDays[] = $daysActionTag;
+                    }    
                 }
             }
 
@@ -176,8 +267,15 @@ class ExternalModule extends AbstractExternalModule
             $this->initializeJavascriptModuleObject();
             $this->tt_addToJavascriptModuleObject('preventFutureDateFields', json_encode($preventFutureDateFields));
             $this->tt_addToJavascriptModuleObject('preventPastDateFields', json_encode($preventPastDateFields));
+
             $this->tt_addToJavascriptModuleObject('preventSaturdayFields', json_encode($preventSaturdayFields));
             $this->tt_addToJavascriptModuleObject('preventSundayFields', json_encode($preventSundayFields));
+            $this->tt_addToJavascriptModuleObject('preventMondayFields', json_encode($preventMondayFields));
+            $this->tt_addToJavascriptModuleObject('preventTuesdayFields', json_encode($preventTuesdayFields));
+            $this->tt_addToJavascriptModuleObject('preventWednesdayFields', json_encode($preventWednesdayFields));
+            $this->tt_addToJavascriptModuleObject('preventThursdayFields', json_encode($preventThursdayFields));
+            $this->tt_addToJavascriptModuleObject('preventFridayFields', json_encode($preventFridayFields));
+            $this->tt_addToJavascriptModuleObject('preventDaysFieldsDays', json_encode($preventDaysFieldsDays));
             //$this->includeSource(ResourceType::JS, 'js/preventPastOrFutureDates.js');
             $this->includeSource(ResourceType::JS, 'js/preventDaysOfWeek.js');
         }
